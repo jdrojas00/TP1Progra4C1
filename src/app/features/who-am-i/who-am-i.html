@@ -1,0 +1,98 @@
+<div class="max-w-4xl mx-auto px-4 py-12">
+
+  <!-- Loading -->
+  @if (githubService.loading()) {
+    <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div class="w-16 h-16 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-[var(--color-text-muted)]">Cargando perfil...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (githubService.error()) {
+    <div class="flex items-center gap-3 bg-red-500/10 border border-red-500/30 text-red-400 px-6 py-4 rounded-xl">
+      <i class="pi pi-exclamation-triangle text-xl"></i>
+      <span>{{ githubService.error() }}</span>
+    </div>
+  }
+
+  <!-- Profile -->
+  @if (githubService.profile(); as p) {
+    <div class="flex flex-col gap-8 animate-[fadeIn_0.5s_ease-in-out]">
+
+      <!-- Header card -->
+      <div class="bg-[var(--color-surface-alt)] rounded-2xl p-8 border border-white/10 flex flex-col md:flex-row items-center gap-8">
+        <img
+          [src]="p.avatar_url"
+          [alt]="p.name"
+          class="w-36 h-36 rounded-full border-4 border-[var(--color-primary)] shadow-xl"
+        />
+        <div class="flex flex-col gap-2 text-center md:text-left">
+          <h1 class="text-3xl font-bold text-white">{{ p.name }}</h1>
+          <p class="text-[var(--color-primary)] font-mono text-lg">@{{ p.login }}</p>
+          @if (p.bio) {
+            <p class="text-[var(--color-text-muted)] max-w-md">{{ p.bio }}</p>
+          }
+          @if (p.location) {
+            <p class="flex items-center gap-1 text-[var(--color-text-muted)] justify-center md:justify-start">
+              <i class="pi pi-map-marker"></i> {{ p.location }}
+            </p>
+          }
+
+          <a
+            [href]="p.html_url"
+            target="_blank"
+            class="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white rounded-lg transition-colors self-center md:self-start"
+          >
+            <i class="pi pi-github"></i> Ver en GitHub
+          </a>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-3 gap-4">
+        @for (stat of [
+          { label: 'Repositorios', value: p.public_repos, icon: 'pi-book' },
+          { label: 'Seguidores',   value: p.followers,    icon: 'pi-users' },
+          { label: 'Siguiendo',    value: p.following,    icon: 'pi-user-plus' }
+        ]; track stat.label) {
+          <div class="bg-[var(--color-surface-alt)] border border-white/10 rounded-xl p-5 flex flex-col items-center gap-2">
+            <i class="pi {{ stat.icon }} text-2xl text-[var(--color-primary)]"></i>
+            <span class="text-3xl font-bold text-white">{{ stat.value }}</span>
+            <span class="text-[var(--color-text-muted)] text-sm">{{ stat.label }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Juego propio -->
+      <div class="bg-[var(--color-surface-alt)] rounded-2xl p-8 border border-white/10 flex flex-col gap-4">
+        <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+          <i class="pi pi-star text-[var(--color-primary)]"></i>
+          Mi juego propio: Wordle
+        </h2>
+        <p class="text-[var(--color-text-muted)] leading-relaxed">
+          Wordle es un juego de palabras en el que tenés <strong class="text-white">6 intentos</strong>
+          para adivinar una palabra oculta de <strong class="text-white">5 letras</strong>.
+          Después de cada intento, cada letra recibe un color que indica qué tan cerca estás:
+        </p>
+        <ul class="flex flex-col gap-3 mt-2">
+          @for (hint of [
+            { color: 'bg-green-500',  label: 'Verde',  desc: 'La letra está en la posición correcta.' },
+            { color: 'bg-yellow-500', label: 'Amarillo', desc: 'La letra está en la palabra pero en otra posición.' },
+            { color: 'bg-gray-600',   label: 'Gris',   desc: 'La letra no está en la palabra.' }
+          ]; track hint.label) {
+            <li class="flex items-center gap-3">
+              <span class="w-8 h-8 rounded {{ hint.color }} flex-shrink-0"></span>
+              <span class="text-[var(--color-text-muted)]">
+                <strong class="text-white">{{ hint.label }}:</strong> {{ hint.desc }}
+              </span>
+            </li>
+          }
+        </ul>
+        <p class="text-[var(--color-text-muted)] mt-2 leading-relaxed">
+          El objetivo es usar la lógica y el vocabulario para descubrir la palabra en la menor cantidad de intentos posible.
+        </p>
+      </div>
+    </div>
+  }
+</div>
