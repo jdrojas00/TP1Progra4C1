@@ -1,0 +1,55 @@
+<nav class="fixed top-0 left-0 right-0 z-50 bg-[var(--color-surface-alt)] border-b border-white/10 shadow-lg">
+  <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+
+    <!-- Logo -->
+    <a routerLink="/home" class="flex items-center gap-2 text-xl font-bold text-[var(--color-primary)] hover:opacity-80 transition-opacity">
+      <i class="pi pi-th-large text-2xl"></i>
+      <span>Sala de Juegos</span>
+    </a>
+
+    <!-- Desktop links -->
+    <ul class="hidden md:flex items-center gap-1">
+      @for (link of links; track link.path) {
+        <li
+          
+            [routerLink]="link.path"
+            routerLinkActive="bg-[var(--color-primary)] text-white"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg text-[var(--color-text-muted)] hover:text-white hover:bg-white/10 transition-all duration-200"
+          >
+            <i [class]="link.icon"></i>
+            {{ link.label }}
+        </li>
+      }
+    </ul>
+
+    <!-- Mobile hamburger -->
+    <button
+      class="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="menuOpen()"
+      aria-label="Menú"
+    >
+      <i class="pi text-xl" [class]="menuOpen() ? 'pi-times' : 'pi-bars'"></i>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  @if (menuOpen()) {
+    <div class="md:hidden border-t border-white/10 bg-[var(--color-surface-alt)]">
+      <ul class="flex flex-col p-4 gap-2">
+        @for (link of links; track link.path) {
+          <li
+            
+              [routerLink]="link.path"
+              routerLinkActive="bg-[var(--color-primary)] text-white"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg text-[var(--color-text-muted)] hover:text-white hover:bg-white/10 transition-all duration-200"
+              (click)="closeMenu()"
+            >
+              <i [class]="link.icon"></i>
+              {{ link.label }}
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</nav>
