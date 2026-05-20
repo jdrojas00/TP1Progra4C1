@@ -1,1 +1,108 @@
-<p>home works!</p>
+<div class="max-w-5xl mx-auto px-4 py-16 flex flex-col gap-12">
+
+  <!-- Hero: usuario NO logueado -->
+  @if (!auth.isLogged()) {
+    <div class="flex flex-col items-center text-center gap-6 animate-[fadeIn_0.6s_ease-in-out]">
+      <div class="w-24 h-24 rounded-2xl bg-[var(--color-primary)] flex items-center justify-center shadow-xl">
+        <i class="pi pi-th-large text-5xl text-white"></i>
+      </div>
+      <div class="flex flex-col gap-2">
+        <h1 class="text-5xl font-bold text-white">Sala de Juegos</h1>
+        <p class="text-[var(--color-text-muted)] text-xl max-w-lg">
+          Tu espacio para jugar, competir y divertirte. Iniciá sesión para acceder a todos los juegos.
+        </p>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-4">
+        <a routerLink="/register"
+          class="flex items-center gap-2 px-8 py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-semibold rounded-xl transition-all duration-200 hover:-translate-y-0.5 shadow-lg">
+          <i class="pi pi-user-plus"></i> Crear cuenta
+        </a>
+        <a routerLink="/login"
+          class="flex items-center gap-2 px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-all duration-200 border border-white/20">
+          <i class="pi pi-sign-in"></i> Ingresar
+        </a>
+      </div>
+    </div>
+  }
+
+  <!-- Hero: usuario logueado -->
+  @if (auth.isLogged()) {
+    <div class="flex flex-col gap-2 animate-[fadeIn_0.4s_ease-in-out]">
+      <p class="text-[var(--color-text-muted)]">Bienvenido de nuevo,</p>
+      <h1 class="text-4xl font-bold text-white">
+        {{ auth.userProfile()?.nombre }} {{ auth.userProfile()?.apellido }}
+        <span class="text-[var(--color-primary)]"> 👋</span>
+      </h1>
+      <p class="text-[var(--color-text-muted)]">¿A qué querés jugar hoy?</p>
+    </div>
+  }
+
+  <!-- Grilla de juegos (siempre visible, bloqueada si no está logueado) -->
+  <div class="flex flex-col gap-4">
+    @if (!auth.isLogged()) {
+      <div class="flex items-center gap-2 text-[var(--color-text-muted)] text-sm">
+        <i class="pi pi-lock"></i>
+        <span>Iniciá sesión para acceder a los juegos</span>
+      </div>
+    }
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      @for (game of games; track game.name) {
+        @if (auth.isLogged()) {
+          <a
+            [routerLink]="game.route"
+            class="game-card bg-gradient-to-br {{ game.gradient }} to-transparent border border-white/10 rounded-2xl p-6 flex items-start gap-4 hover:border-[var(--color-primary)]/50 transition-all duration-200 hover:-translate-y-1 cursor-pointer"
+          >
+            <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+              <i class="{{ game.icon }} text-2xl text-white"></i>
+            </div>
+            <div class="flex flex-col gap-1">
+              <h3 class="text-white font-semibold text-lg">{{ game.name }}</h3>
+              <p class="text-[var(--color-text-muted)] text-sm">{{ game.description }}</p>
+            </div>
+          </a>
+        } @else {
+          <div
+            class="bg-gradient-to-br {{ game.gradient }} to-transparent border border-white/5 rounded-2xl p-6 flex items-start gap-4 opacity-40 cursor-not-allowed"
+          >
+            <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+              <i class="{{ game.icon }} text-2xl text-white"></i>
+            </div>
+            <div class="flex flex-col gap-1">
+              <h3 class="text-white font-semibold text-lg">{{ game.name }}</h3>
+              <p class="text-[var(--color-text-muted)] text-sm">{{ game.description }}</p>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Accesos rápidos logueado -->
+  @if (auth.isLogged()) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <a routerLink="/chat"
+        class="flex items-center gap-4 p-5 bg-[var(--color-surface-alt)] border border-white/10 rounded-2xl hover:border-[var(--color-primary)]/50 transition-all duration-200 hover:-translate-y-0.5">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+          <i class="pi pi-comments text-indigo-400 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-white font-medium">Sala de Chat</p>
+          <p class="text-[var(--color-text-muted)] text-sm">Chateá con otros jugadores</p>
+        </div>
+        <i class="pi pi-arrow-right text-[var(--color-text-muted)] ml-auto"></i>
+      </a>
+      <a routerLink="/results"
+        class="flex items-center gap-4 p-5 bg-[var(--color-surface-alt)] border border-white/10 rounded-2xl hover:border-[var(--color-primary)]/50 transition-all duration-200 hover:-translate-y-0.5">
+        <div class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+          <i class="pi pi-chart-bar text-yellow-400 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-white font-medium">Resultados</p>
+          <p class="text-[var(--color-text-muted)] text-sm">Ver tu historial de partidas</p>
+        </div>
+        <i class="pi pi-arrow-right text-[var(--color-text-muted)] ml-auto"></i>
+      </a>
+    </div>
+  }
+
+</div>
