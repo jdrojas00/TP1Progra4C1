@@ -1,1 +1,163 @@
-<p>register works!</p>
+<div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md bg-[var(--color-surface-alt)] border border-white/10 rounded-2xl p-8 flex flex-col gap-6 animate-[fadeIn_0.4s_ease-in-out]">
+
+    <!-- Header -->
+    <div class="flex flex-col items-center gap-2 text-center">
+      <div class="w-14 h-14 rounded-xl bg-[var(--color-primary)] flex items-center justify-center">
+        <i class="pi pi-user-plus text-2xl text-white"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-white">Crear cuenta</h1>
+      <p class="text-[var(--color-text-muted)]">Completá el formulario para registrarte</p>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+
+      <!-- Nombre y Apellido -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-[var(--color-text-muted)]">Nombre</label>
+          <input
+            type="text"
+            formControlName="nombre"
+            placeholder="Juan"
+            class="w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-white/30 focus:outline-none transition-colors"
+            [class]="isInvalid('nombre')
+              ? 'border-red-500/60 focus:border-red-500'
+              : 'border-white/10 focus:border-[var(--color-primary)]'"
+          />
+          @if (isInvalid('nombre')) {
+            <span class="text-red-400 text-xs">Mínimo 2 caracteres</span>
+          }
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-[var(--color-text-muted)]">Apellido</label>
+          <input
+            type="text"
+            formControlName="apellido"
+            placeholder="Pérez"
+            class="w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-white/30 focus:outline-none transition-colors"
+            [class]="isInvalid('apellido')
+              ? 'border-red-500/60 focus:border-red-500'
+              : 'border-white/10 focus:border-[var(--color-primary)]'"
+          />
+          @if (isInvalid('apellido')) {
+            <span class="text-red-400 text-xs">Mínimo 2 caracteres</span>
+          }
+        </div>
+      </div>
+
+      <!-- Edad -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-[var(--color-text-muted)]">Edad</label>
+        <input
+          type="number"
+          formControlName="edad"
+          placeholder="25"
+          min="1"
+          max="120"
+          class="w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-white/30 focus:outline-none transition-colors"
+          [class]="isInvalid('edad')
+            ? 'border-red-500/60 focus:border-red-500'
+            : 'border-white/10 focus:border-[var(--color-primary)]'"
+        />
+        @if (isInvalid('edad')) {
+          <span class="text-red-400 text-xs">Ingresá una edad válida</span>
+        }
+      </div>
+
+      <!-- Email -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-[var(--color-text-muted)]">Email</label>
+        <input
+          type="email"
+          formControlName="email"
+          placeholder="tu@email.com"
+          class="w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-white/30 focus:outline-none transition-colors"
+          [class]="isInvalid('email')
+            ? 'border-red-500/60 focus:border-red-500'
+            : 'border-white/10 focus:border-[var(--color-primary)]'"
+        />
+        @if (isInvalid('email')) {
+          <span class="text-red-400 text-xs">Ingresá un email válido</span>
+        }
+      </div>
+
+      <!-- Password -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-[var(--color-text-muted)]">Contraseña</label>
+        <div class="relative">
+          <input
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="••••••••"
+            class="w-full px-4 py-3 pr-12 bg-white/5 border rounded-xl text-white placeholder-white/30 focus:outline-none transition-colors"
+            [class]="isInvalid('password')
+              ? 'border-red-500/60 focus:border-red-500'
+              : 'border-white/10 focus:border-[var(--color-primary)]'"
+          />
+          <button
+            type="button"
+            (click)="showPassword.update(v => !v)"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-white transition-colors"
+          >
+            <i class="pi" [class]="showPassword() ? 'pi-eye-slash' : 'pi-eye'"></i>
+          </button>
+        </div>
+        @if (isInvalid('password')) {
+          <span class="text-red-400 text-xs">Mínimo 6 caracteres</span>
+        }
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        [disabled]="loading()"
+        class="w-full py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 mt-2"
+      >
+        @if (loading()) {
+          <span class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        } @else {
+          <i class="pi pi-user-plus"></i>
+        }
+        Registrarme
+      </button>
+    </form>
+
+    <p class="text-center text-[var(--color-text-muted)] text-sm">
+      ¿Ya tenés cuenta?
+      <a routerLink="/login" class="text-[var(--color-primary)] hover:underline font-medium">Ingresá</a>
+    </p>
+  </div>
+</div>
+
+<!-- Modal de error (PrimeNG Dialog) -->
+<p-dialog
+  [visible]="modalVisible()"
+  (visibleChange)="modalVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  position="top"
+  styleClass="error-modal"
+>
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-red-500/20 flex items-center justify-center">
+        <i class="pi pi-exclamation-triangle text-red-400"></i>
+      </div>
+      <span class="text-grey font-semibold">No se pudo registrar</span>
+    </div>
+  </ng-template>
+
+  <p class="text-[var(--color-text-muted)] py-2">{{ modalMessage() }}</p>
+
+  <ng-template pTemplate="footer">
+    <button
+      (click)="modalVisible.set(false)"
+      class="w-full py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-semibold rounded-xl transition-colors"
+    >
+      Entendido
+    </button>
+  </ng-template>
+</p-dialog>
