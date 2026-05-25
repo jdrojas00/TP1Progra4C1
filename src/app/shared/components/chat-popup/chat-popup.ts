@@ -1,23 +1,23 @@
-import { Component, inject, signal, effect, ViewChild, ElementRef, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { Component, inject, signal, effect, ViewChild, ElementRef } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ChatService } from '../../core/services/chat';
-import { AuthService } from '../../core/services/auth';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../core/services/auth';
+import { ChatService } from '../../../core/services/chat';
 
 @Component({
-  selector: 'app-chat',
+  selector: 'app-chat-popup',
   standalone: true,
-  imports: [RouterLink, FormsModule, DatePipe],
-  templateUrl: './chat.html',
-  styleUrl: './chat.css'
+  imports: [FormsModule, DatePipe],
+  templateUrl: './chat-popup.html',
+  styleUrl: './chat-popup.css'
 })
-export class Chat implements OnInit {
-  protected chat = inject(ChatService);
+export class ChatPopup {
   protected auth = inject(AuthService);
+  protected chat = inject(ChatService);
 
+  isOpen = signal(false);
   message = signal('');
-  loading = signal(false);
+  initialized = signal(false);
 
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
 
@@ -28,8 +28,16 @@ export class Chat implements OnInit {
     });
   }
 
-  async ngOnInit(): Promise<void> {
-    await this.chat.init();
+  async toggle(): Promise<void> {
+    this.isOpen.update(v => !v);
+
+    if (this.isOpen()) {
+      if (!this.initialized()) {
+        await this.chat.init();
+        this.initialized.set(true);
+      }
+      setTimeout(() => this.scrollToBottom(), 50);
+    }
   }
 
   async send(): Promise<void> {

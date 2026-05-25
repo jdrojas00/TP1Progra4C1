@@ -1,0 +1,64 @@
+.playing-card {
+  width: 110px;
+  height: 160px;
+  border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: #ffffff;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  user-select: none;
+}
+
+.card-red  { color: #dc2626; }
+.card-black { color: #1a1a2e; }
+
+.card-back {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.card-back-pattern {
+  width: 85%;
+  height: 85%;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255,255,255,0.05),
+    rgba(255,255,255,0.05) 4px,
+    transparent 4px,
+    transparent 12px
+  );
+}
+
+.card-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  gap: 1px;
+}
+
+.card-corner.top-left    { top: 8px; left: 10px; }
+.card-corner.bottom-right {
+  bottom: 8px; right: 10px;
+  transform: rotate(180deg);
+}
+
+.card-value { font-size: 1.1rem; font-weight: 800; }
+.card-suit  { font-size: 0.75rem; }
+.card-center { font-size: 2.5rem; }
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes flipIn {
+  from { opacity: 0; transform: rotateY(90deg) scale(0.9); }
+  to   { opacity: 1; transform: rotateY(0deg)  scale(1); }
+}

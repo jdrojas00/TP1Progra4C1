@@ -10,6 +10,7 @@ import { MayorMenor } from './features/games/mayor-menor/mayor-menor';
 import { Preguntados } from './features/games/preguntados/preguntados';
 import { Wordle } from './features/games/wordle/wordle';
 import { Chat } from './features/chat/chat';
+import { ChatPopup } from './shared/components/chat-popup/chat-popup';
 import { Results } from './features/results/results';
 
 
@@ -61,6 +62,11 @@ export const routes: Routes = [
     path: 'chat',
     canActivate: [authGuard],
     component: Chat
+  },
+  {
+    path: 'chat-popup',
+    canActivate: [authGuard],
+    component: ChatPopup
   },
   {
     path: 'results',
