@@ -1,1 +1,182 @@
-<p>ahorcado works!</p>
+<div class="max-w-3xl mx-auto px-4 py-10 flex flex-col gap-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <a routerLink="/home"
+        class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+        <i class="pi pi-arrow-left text-[var(--color-text-muted)]"></i>
+      </a>
+      <div>
+        <h1 class="text-2xl font-bold text-white">Ahorcado</h1>
+        <p class="text-[var(--color-text-muted)] text-sm">Adiviná la palabra</p>
+      </div>
+    </div>
+
+    <!-- Timer y errores -->
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 text-[var(--color-text-muted)] text-sm">
+        <i class="pi pi-clock"></i>
+        <span class="font-mono text-white">{{ elapsedTime() * 1000 | date: 'mm:ss' }}</span>
+      </div>
+      <div class="flex items-center gap-2 text-[var(--color-text-muted)] text-sm">
+        <i class="pi pi-times-circle text-red-400"></i>
+        <span class="text-white font-mono">{{ errors() }}/{{ maxErrors }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SVG Ahorcado -->
+  <div class="flex justify-center">
+    <svg viewBox="0 0 200 220" class="w-48 h-48 stroke-white" fill="none"
+      stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Estructura fija -->
+      <line x1="20"  y1="210" x2="180" y2="210" class="stroke-[var(--color-text-muted)]"/>
+      <line x1="60"  y1="210" x2="60"  y2="10"  class="stroke-[var(--color-text-muted)]"/>
+      <line x1="60"  y1="10"  x2="130" y2="10"  class="stroke-[var(--color-text-muted)]"/>
+      <line x1="130" y1="10"  x2="130" y2="40"  class="stroke-[var(--color-text-muted)]"/>
+
+      <!-- Cabeza -->
+      @if (errors() >= 1) {
+        <circle cx="130" cy="58" r="18" class="hangman-part"/>
+      }
+      <!-- Cuerpo -->
+      @if (errors() >= 2) {
+        <line x1="130" y1="76" x2="130" y2="140" class="hangman-part"/>
+      }
+      <!-- Brazo izquierdo -->
+      @if (errors() >= 3) {
+        <line x1="130" y1="95" x2="100" y2="120" class="hangman-part"/>
+      }
+      <!-- Brazo derecho -->
+      @if (errors() >= 4) {
+        <line x1="130" y1="95" x2="160" y2="120" class="hangman-part"/>
+      }
+      <!-- Pierna izquierda -->
+      @if (errors() >= 5) {
+        <line x1="130" y1="140" x2="100" y2="175" class="hangman-part"/>
+      }
+      <!-- Pierna derecha -->
+      @if (errors() >= 6) {
+        <line x1="130" y1="140" x2="160" y2="175" class="hangman-part"/>
+      }
+    </svg>
+  </div>
+
+  <!-- Palabra -->
+  <div class="flex justify-center gap-2 flex-wrap">
+    @for (item of displayWord(); track $index) {
+      @if (item.letter === ' ') {
+        <div class="w-6"></div>
+      } @else {
+        <div class="flex flex-col items-center gap-1">
+          <span class="text-2xl font-bold text-white min-w-[2rem] text-center transition-all duration-300"
+            [class]="item.revealed ? 'opacity-100 scale-100' : 'opacity-0 scale-75'">
+            {{ item.revealed ? item.letter : '' }}
+          </span>
+          <div class="w-8 h-0.5 rounded"
+            [class]="item.revealed
+              ? 'bg-[var(--color-primary)]'
+              : 'bg-white/20'">
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Hint -->
+  <div class="flex justify-center">
+    @if (!showHint()) {
+      <button
+        (click)="useHint()"
+        [disabled]="gameOver()"
+        class="flex items-center gap-2 px-5 py-2.5 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        <i class="pi pi-lightbulb"></i>
+        Usar pista <span class="text-yellow-500/60 text-xs">(-50 pts)</span>
+      </button>
+    } @else {
+      <div class="flex items-start gap-3 px-5 py-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl max-w-sm text-center">
+        <i class="pi pi-lightbulb text-yellow-400 mt-0.5 flex-shrink-0"></i>
+        <p class="text-yellow-200 text-sm">{{ currentWord().hint }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- Letras incorrectas -->
+  @if (wrongLetters().length > 0) {
+    <div class="flex items-center justify-center gap-2 flex-wrap">
+      <span class="text-[var(--color-text-muted)] text-sm">Incorrectas:</span>
+      @for (letter of wrongLetters(); track letter) {
+        <span class="px-2 py-0.5 bg-red-500/20 border border-red-500/30 text-red-400 rounded text-sm font-mono">
+          {{ letter }}
+        </span>
+      }
+    </div>
+  }
+
+  <!-- Teclado -->
+  <div class="flex flex-wrap justify-center gap-2">
+    @for (letter of alphabet; track letter) {
+      <button
+        (click)="guess(letter)"
+        [disabled]="isLetterUsed(letter) || gameOver()"
+        class="w-10 h-10 rounded-lg font-bold text-sm transition-all duration-150 border"
+        [class]="isLetterCorrect(letter)
+          ? 'bg-green-500/20 border-green-500/40 text-green-400 cursor-default'
+          : isLetterWrong(letter)
+          ? 'bg-red-500/20 border-red-500/40 text-red-400 cursor-default'
+          : 'bg-white/5 border-white/10 text-white hover:bg-[var(--color-primary)]/20 hover:border-[var(--color-primary)]/50 active:scale-95'"
+      >
+        {{ letter }}
+      </button>
+    }
+  </div>
+
+  <!-- Game Over / Win overlay -->
+  @if (gameOver()) {
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+      <div class="bg-[var(--color-surface-alt)] border rounded-2xl p-8 flex flex-col items-center gap-5 max-w-sm w-full animate-[popIn_0.3s_ease-out]"
+        [class]="won() ? 'border-green-500/30' : 'border-red-500/30'">
+
+        <div class="w-16 h-16 rounded-full flex items-center justify-center"
+          [class]="won() ? 'bg-green-500/20' : 'bg-red-500/20'">
+          <i class="pi text-3xl" [class]="won() ? 'pi-trophy text-green-400' : 'pi-times text-red-400'"></i>
+        </div>
+
+        <div class="text-center flex flex-col gap-1">
+          <h2 class="text-2xl font-bold text-white">{{ won() ? '¡Ganaste!' : '¡Perdiste!' }}</h2>
+          <p class="text-[var(--color-text-muted)]">
+            La palabra era: <strong class="text-white">{{ currentWord().word }}</strong>
+          </p>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-3 w-full">
+          @for (stat of [
+            { label: 'Tiempo',  value: (elapsedTime() * 1000 | date: 'mm:ss'), icon: 'pi-clock'        },
+            { label: 'Errores', value: errors() + '/' + maxErrors, icon: 'pi-times-circle' },
+            { label: 'Puntaje', value: score(),                    icon: 'pi-star'         }
+          ]; track stat.label) {
+            <div class="bg-white/5 rounded-xl p-3 flex flex-col items-center gap-1">
+              <i class="pi {{ stat.icon }} text-[var(--color-primary)] text-lg"></i>
+              <span class="text-white font-bold">{{ stat.value }}</span>
+              <span class="text-[var(--color-text-muted)] text-xs">{{ stat.label }}</span>
+            </div>
+          }
+        </div>
+
+        <button
+          (click)="startGame()"
+          class="w-full py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-semibold rounded-xl transition-colors"
+        >
+          Jugar de nuevo
+        </button>
+        <a routerLink="/home"
+          class="text-[var(--color-text-muted)] hover:text-white text-sm transition-colors">
+          Volver al inicio
+        </a>
+      </div>
+    </div>
+  }
+</div>

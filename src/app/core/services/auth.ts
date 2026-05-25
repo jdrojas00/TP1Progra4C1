@@ -14,7 +14,7 @@ export class AuthService {
 
   async checkSession(): Promise<void> {
     const { data, error } = await this.supabase.auth.getSession();
-    if (error || !data.session) { this.clearModels(); return; }
+    if (error || !data.session) { this.clearModels(); return; };
 
     const { id, email } = data.session.user;
     this.currentUser.set({ id, email: email ?? '' });
@@ -23,7 +23,10 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<{ success: boolean; error?: string }> {
     const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
-    if (error) return { success: false, error: error.message };
+    if (error) return {
+      success: false, error: error.message === 'Invalid login credentials' ? 'Email o contraseña incorrectos.'
+        : error.message
+    };
 
     if (data.user?.email) {
       this.currentUser.set({ id: data.user.id, email: data.user.email });
@@ -39,7 +42,10 @@ export class AuthService {
     nombre: string, apellido: string, edad: number
   ): Promise<{ success: boolean; error?: string }> {
     const { data, error } = await this.supabase.auth.signUp({ email, password });
-    if (error) return { success: false, error: error.message };
+    if (error) return {
+      success: false, error: error.message === 'User already registered' ? 'El email ingresado ya está registrado.'
+        : error.message
+    };
 
     if (data.user) {
       const { error: profileError } = await this.supabase
@@ -68,11 +74,11 @@ export class AuthService {
       .eq('id', userId)
       .single();
 
-    if (error) { this.clearModels(); return; }
+    if (error) { this.logout(); return; }
     if (data) this.userProfile.set(data);
   }
 
-  private clearModels(): void {
+  private clearModels() {
     this.currentUser.set(null);
     this.userProfile.set(null);
   }

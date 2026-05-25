@@ -1,1 +1,174 @@
-<p>mayor-menor works!</p>
+<div class="max-w-2xl mx-auto px-4 py-10 flex flex-col gap-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <a routerLink="/home"
+        class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+        <i class="pi pi-arrow-left text-[var(--color-text-muted)]"></i>
+      </a>
+      <div>
+        <h1 class="text-2xl font-bold text-white">Mayor o Menor</h1>
+        <p class="text-[var(--color-text-muted)] text-sm">¿La siguiente carta es mayor, menor o igual?</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-sm">
+      <div class="flex items-center gap-1 text-[var(--color-text-muted)]">
+        <i class="pi pi-clock"></i>
+        <span class="font-mono text-white">{{ elapsedTime() * 1000 | date: 'mm:ss' }}</span>
+      </div>
+      <div class="flex items-center gap-1 text-[var(--color-text-muted)]">
+        <i class="pi pi-star text-yellow-400"></i>
+        <span class="font-mono text-white">{{ score() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progreso y vidas -->
+  <div class="flex items-center justify-between">
+    <div class="flex flex-col gap-1">
+      <span class="text-[var(--color-text-muted)] text-xs">Ronda</span>
+      <div class="flex items-center gap-2">
+        <div class="h-2 w-40 bg-white/10 rounded-full overflow-hidden">
+          <div class="h-full bg-[var(--color-primary)] rounded-full transition-all duration-500"
+            [style.width.%]="(round() / maxRounds) * 100">
+          </div>
+        </div>
+        <span class="text-white text-sm font-mono">{{ round() }}/{{ maxRounds }}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1">
+      @for (alive of livesArray(); track $index) {
+        <i class="pi pi-heart text-lg transition-all duration-300"
+          [class]="alive ? 'text-red-400' : 'text-white/10'"></i>
+      }
+    </div>
+  </div>
+
+  <!-- Cartas -->
+  <div class="flex items-center justify-center gap-8">
+
+    <!-- Carta actual -->
+    <div class="flex flex-col items-center gap-3">
+      <span class="text-[var(--color-text-muted)] text-sm">Carta actual</span>
+      @if (currentCard()) {
+        <div class="playing-card"
+          [class]="currentCard().color === 'red' ? 'card-red' : 'card-black'">
+          <div class="card-corner top-left">
+            <div class="card-value">{{ currentCard().label }}</div>
+            <div class="card-suit">{{ suitSymbol(currentCard().suit) }}</div>
+          </div>
+          <div class="card-center">{{ suitSymbol(currentCard().suit) }}</div>
+          <div class="card-corner bottom-right">
+            <div class="card-value">{{ currentCard().label }}</div>
+            <div class="card-suit">{{ suitSymbol(currentCard().suit) }}</div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Flecha / resultado -->
+    <div class="flex flex-col items-center justify-center w-16 h-16">
+      @if (verdict() === 'correct') {
+        <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center animate-[popIn_0.3s_ease-out]">
+          <i class="pi pi-check text-green-400 text-xl"></i>
+        </div>
+      } @else if (verdict() === 'wrong') {
+        <div class="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center animate-[popIn_0.3s_ease-out]">
+          <i class="pi pi-times text-red-400 text-xl"></i>
+        </div>
+      } @else {
+        <i class="pi pi-question text-[var(--color-text-muted)] text-3xl"></i>
+      }
+    </div>
+
+    <!-- Carta siguiente (oculta o revelada) -->
+    <div class="flex flex-col items-center gap-3">
+      <span class="text-[var(--color-text-muted)] text-sm">Siguiente carta</span>
+      @if (!revealing()) {
+        <div class="playing-card card-back">
+          <div class="card-back-pattern"></div>
+        </div>
+      } @else {
+        <div class="playing-card animate-[flipIn_0.4s_ease-out]"
+          [class]="nextCard().color === 'red' ? 'card-red' : 'card-black'">
+          <div class="card-corner top-left">
+            <div class="card-value">{{ nextCard().label }}</div>
+            <div class="card-suit">{{ suitSymbol(nextCard().suit) }}</div>
+          </div>
+          <div class="card-center">{{ suitSymbol(nextCard().suit) }}</div>
+          <div class="card-corner bottom-right">
+            <div class="card-value">{{ nextCard().label }}</div>
+            <div class="card-suit">{{ suitSymbol(nextCard().suit) }}</div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Botones de acción -->
+  <div class="flex justify-center gap-4">
+    <button (click)="guess('lower')" [disabled]="revealing() || gameOver()"
+      class="flex flex-col items-center gap-2 px-8 py-4 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-500/50 text-blue-400 rounded-2xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5 active:scale-95">
+      <i class="pi pi-arrow-down text-2xl"></i>
+      <span class="font-semibold">Menor</span>
+      <span class="text-xs text-blue-400/60">+100 pts</span>
+    </button>
+
+    <button (click)="guess('equal')" [disabled]="revealing() || gameOver()"
+      class="flex flex-col items-center gap-2 px-8 py-4 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30 hover:border-yellow-500/50 text-yellow-400 rounded-2xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5 active:scale-95">
+      <i class="pi pi-equals text-2xl"></i>
+      <span class="font-semibold">Igual</span>
+      <span class="text-xs text-yellow-400/60">+300 pts</span>
+    </button>
+
+    <button (click)="guess('higher')" [disabled]="revealing() || gameOver()"
+      class="flex flex-col items-center gap-2 px-8 py-4 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 hover:border-purple-500/50 text-purple-400 rounded-2xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5 active:scale-95">
+      <i class="pi pi-arrow-up text-2xl"></i>
+      <span class="font-semibold">Mayor</span>
+      <span class="text-xs text-purple-400/60">+100 pts</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- Game Over overlay -->
+@if (gameOver()) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+    <div class="bg-[var(--color-surface-alt)] border rounded-2xl p-8 flex flex-col items-center gap-5 max-w-sm w-full animate-[popIn_0.3s_ease-out]"
+      [class]="won() ? 'border-green-500/30' : 'border-red-500/30'">
+
+      <div class="w-16 h-16 rounded-full flex items-center justify-center"
+        [class]="won() ? 'bg-green-500/20' : 'bg-red-500/20'">
+        <i class="pi text-3xl" [class]="won() ? 'pi-trophy text-green-400' : 'pi-times text-red-400'"></i>
+      </div>
+
+      <div class="text-center flex flex-col gap-1">
+        <h2 class="text-2xl font-bold text-white">{{ won() ? '¡Completaste el juego!' : '¡Sin vidas!' }}</h2>
+        <p class="text-[var(--color-text-muted)]">{{ won() ? 'Adivinaste las 12 rondas' : 'Se acabaron las vidas' }}</p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 w-full">
+        @for (stat of [
+          { label: 'Tiempo',  value: (elapsedTime() * 1000 | date: 'mm:ss'), icon: 'pi-clock'     },
+          { label: 'Rondas',  value: round() + '/' + maxRounds, icon: 'pi-list'      },
+          { label: 'Puntaje', value: score(),                   icon: 'pi-star'      }
+        ]; track stat.label) {
+          <div class="bg-white/5 rounded-xl p-3 flex flex-col items-center gap-1">
+            <i class="pi {{ stat.icon }} text-[var(--color-primary)] text-lg"></i>
+            <span class="text-white font-bold">{{ stat.value }}</span>
+            <span class="text-[var(--color-text-muted)] text-xs">{{ stat.label }}</span>
+          </div>
+        }
+      </div>
+
+      <button (click)="startGame()"
+        class="w-full py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-semibold rounded-xl transition-colors">
+        Jugar de nuevo
+      </button>
+      <a routerLink="/home" class="text-[var(--color-text-muted)] hover:text-white text-sm transition-colors">
+        Volver al inicio
+      </a>
+    </div>
+  </div>
+}

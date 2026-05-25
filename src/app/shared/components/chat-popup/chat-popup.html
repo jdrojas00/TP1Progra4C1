@@ -1,0 +1,84 @@
+@if (auth.isLogged()) {
+  <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+
+    <!-- Panel -->
+    @if (isOpen()) {
+      <div class="chat-panel bg-[var(--color-surface-alt)] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden w-80 h-96">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[var(--color-surface)]">
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+            <span class="text-white font-semibold text-sm">Sala de Chat</span>
+          </div>
+          <button (click)="toggle()"
+            class="w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors">
+            <i class="pi pi-times text-[var(--color-text-muted)] text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Mensajes -->
+        <div #messagesContainer class="flex-1 overflow-y-auto p-3 flex flex-col gap-2 scrollbar-thin">
+
+          @if (chat.loading()) {
+            <div class="flex items-center justify-center h-full">
+              <div class="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          }
+
+          @if (!chat.loading() && chat.messages().length === 0) {
+            <div class="flex items-center justify-center h-full text-center">
+              <p class="text-[var(--color-text-muted)] text-sm">
+                No hay mensajes aún.<br>¡Sé el primero en escribir!
+              </p>
+            </div>
+          }
+
+          @for (msg of chat.messages(); track msg.id) {
+            <div class="flex flex-col gap-0.5"
+              [class]="isOwn(msg.user_id) ? 'items-end' : 'items-start'">
+              @if (!isOwn(msg.user_id)) {
+                <span class="text-[var(--color-text-muted)] text-xs px-1">
+                  {{ msg.profiles?.nombre }} {{ msg.profiles?.apellido }}
+                </span>
+              }
+              <div class="max-w-[85%] px-3 py-2 rounded-2xl text-sm break-words"
+                [class]="isOwn(msg.user_id)
+                  ? 'bg-[var(--color-primary)] text-white rounded-br-sm'
+                  : 'bg-white/10 text-white rounded-bl-sm'">
+                {{ msg.mensaje }}
+              </div>
+              <span class="text-[var(--color-text-muted)] text-[10px] px-1">
+                {{ msg.created_at | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- Input -->
+        <div class="px-3 py-3 border-t border-white/10 flex gap-2">
+          <input
+            type="text"
+            [value]="message()"
+            (input)="message.set($any($event.target).value)"
+            (keydown)="onKeyDown($event)"
+            placeholder="Escribí un mensaje..."
+            maxlength="300"
+            class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+          />
+          <button (click)="send()" [disabled]="!message().trim()"
+            class="w-9 h-9 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors flex-shrink-0">
+            <i class="pi pi-send text-white text-sm"></i>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Botón flotante -->
+    <button (click)="toggle()"
+      class="w-14 h-14 rounded-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95">
+      <i class="pi text-white text-xl" [class]="isOpen() ? 'pi-times' : 'pi-comments'"></i>
+    </button>
+
+  </div>
+}
