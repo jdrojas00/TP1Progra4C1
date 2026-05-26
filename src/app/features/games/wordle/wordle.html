@@ -1,1 +1,111 @@
-<p>wordle works!</p>
+<div class="max-w-lg mx-auto px-4 py-10 flex flex-col gap-6 items-center">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between w-full">
+    <div class="flex items-center gap-3">
+      <a routerLink="/home"
+        class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+        <i class="pi pi-arrow-left text-[var(--color-text-muted)]"></i>
+      </a>
+      <div>
+        <h1 class="text-2xl font-bold text-white">Wordle</h1>
+        <p class="text-[var(--color-text-muted)] text-sm">Adiviná la palabra de 5 letras</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-1 text-[var(--color-text-muted)] text-sm">
+      <i class="pi pi-clock"></i>
+      <span class="font-mono text-white">{{ elapsedTime() * 1000 | date: 'mm:ss' }}</span>
+    </div>
+  </div>
+
+  <!-- Mensaje temporal -->
+  @if (message()) {
+    <div class="fixed top-24 left-1/2 -translate-x-1/2 z-50
+      bg-white text-gray-900 font-semibold px-6 py-2 rounded-xl shadow-xl
+      animate-[fadeIn_0.2s_ease-out]">
+      {{ message() }}
+    </div>
+  }
+
+  <!-- Grid -->
+  <div class="flex flex-col gap-1.5">
+    @for (row of grid(); track $index; let rowIndex = $index) {
+      <div class="flex gap-1.5"
+        [class]="shakeRow() === rowIndex ? 'shake' : ''">
+        @for (cell of row.letters; track $index; let colIndex = $index) {
+          <div class="wordle-cell"
+            [class]="getLetterClass(cell, rowIndex, colIndex)"
+            [style.animation-delay]="revealingRow() === rowIndex ? (colIndex * 350) + 'ms' : '0ms'">
+            {{ cell.letter }}
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Teclado -->
+  <div class="flex flex-col gap-1.5 w-full">
+    @for (row of keyboardRows; track $index) {
+      <div class="flex justify-center gap-1">
+        @for (key of row; track key) {
+          <button
+            (click)="onKeyPress(key)"
+            [disabled]="gameOver()"
+            class="wordle-key"
+            [class]="key === 'ENTER' || key === '⌫'
+              ? 'wordle-key-wide ' + getKeyClass(key)
+              : getKeyClass(key)"
+          >
+            {{ key }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+</div>
+
+<!-- Game Over overlay -->
+@if (gameOver()) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+    <div class="bg-[var(--color-surface-alt)] border rounded-2xl p-8 flex flex-col items-center gap-5 max-w-sm w-full animate-[popIn_0.3s_ease-out]"
+      [class]="won() ? 'border-green-500/30' : 'border-red-500/30'">
+
+      <div class="w-16 h-16 rounded-full flex items-center justify-center"
+        [class]="won() ? 'bg-green-500/20' : 'bg-red-500/20'">
+        <i class="pi text-3xl"
+          [class]="won() ? 'pi-trophy text-green-400' : 'pi-times text-red-400'"></i>
+      </div>
+
+      <div class="text-center flex flex-col gap-1">
+        <h2 class="text-2xl font-bold text-white">{{ won() ? '¡Ganaste!' : '¡Perdiste!' }}</h2>
+        <p class="text-[var(--color-text-muted)]">
+          La palabra era: <strong class="text-white">{{ targetWord() }}</strong>
+        </p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 w-full">
+        @for (stat of [
+          { label: 'Intentos', value: (won() ? currentRow() + 1 : maxAttempts) + '/' + maxAttempts, icon: 'pi-list'  },
+          { label: 'Tiempo',   value: (elapsedTime() * 1000 | date: 'mm:ss'),                                     icon: 'pi-clock' },
+          { label: 'Puntaje',  value: score(),                                                       icon: 'pi-star'  }
+        ]; track stat.label) {
+          <div class="bg-white/5 rounded-xl p-3 flex flex-col items-center gap-1">
+            <i class="pi {{ stat.icon }} text-[var(--color-primary)] text-lg"></i>
+            <span class="text-white font-bold">{{ stat.value }}</span>
+            <span class="text-[var(--color-text-muted)] text-xs">{{ stat.label }}</span>
+          </div>
+        }
+      </div>
+
+      <button (click)="startGame()"
+        class="w-full py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-semibold rounded-xl transition-colors">
+        Jugar de nuevo
+      </button>
+      <a routerLink="/home"
+        class="text-[var(--color-text-muted)] hover:text-white text-sm transition-colors">
+        Volver al inicio
+      </a>
+    </div>
+  </div>
+}

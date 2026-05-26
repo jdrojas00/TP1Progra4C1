@@ -1,1 +1,134 @@
-<p>results works!</p>
+<div class="max-w-5xl mx-auto px-4 py-10 flex flex-col gap-8">
+
+  <!-- Header -->
+  <div class="flex items-center gap-3">
+    <a routerLink="/home"
+      class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+      <i class="pi pi-arrow-left text-[var(--color-text-muted)]"></i>
+    </a>
+    <div>
+      <h1 class="text-2xl font-bold text-white">Ranking Global</h1>
+      <p class="text-[var(--color-text-muted)] text-sm">Mejores puntajes por juego</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-2 overflow-x-auto pb-1">
+    @for (tab of tabs; track tab.id) {
+      <button
+        (click)="selectTab(tab.id)"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-200"
+        [class]="activeTab() === tab.id
+          ? 'bg-[var(--color-primary)] text-white'
+          : 'bg-white/5 text-[var(--color-text-muted)] hover:bg-white/10 hover:text-white'"
+      >
+        <i class="pi {{ tab.icon }}"></i>
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-[var(--color-surface-alt)] border border-white/10 rounded-2xl overflow-hidden">
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="flex items-center justify-center py-20">
+        <div class="w-8 h-8 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }
+
+    <!-- Sin resultados -->
+    @if (!loading() && results().length === 0) {
+      <div class="flex flex-col items-center justify-center py-20 gap-3">
+        <i class="pi pi-inbox text-4xl text-[var(--color-text-muted)]"></i>
+        <p class="text-[var(--color-text-muted)]">No hay resultados todavía para este juego</p>
+      </div>
+    }
+
+    <!-- Tabla de resultados -->
+    @if (!loading() && results().length > 0) {
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-white/10 text-[var(--color-text-muted)] text-sm">
+            <th class="text-left px-6 py-4 font-medium">#</th>
+            <th class="text-left px-4 py-4 font-medium">Jugador</th>
+            <th class="text-left px-4 py-4 font-medium">Puntaje</th>
+            <th class="text-left px-4 py-4 font-medium">Resultado</th>
+            <th class="text-left px-4 py-4 font-medium">Tiempo</th>
+            <th class="text-left px-4 py-4 font-medium">Detalle</th>
+            <th class="text-left px-4 py-4 font-medium">Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (result of results(); track result.id; let i = $index) {
+            <tr class="border-b border-white/5 transition-colors hover:bg-white/5"
+              [class]="isOwnResult(result) ? 'bg-[var(--color-primary)]/5' : ''">
+
+              <!-- Posición -->
+              <td class="px-6 py-4">
+                @if (i === 0) {
+                  <span class="text-yellow-400 font-bold text-lg">🥇</span>
+                } @else if (i === 1) {
+                  <span class="text-gray-300 font-bold text-lg">🥈</span>
+                } @else if (i === 2) {
+                  <span class="text-amber-600 font-bold text-lg">🥉</span>
+                } @else {
+                  <span class="text-[var(--color-text-muted)] font-mono">{{ i + 1 }}</span>
+                }
+              </td>
+
+              <!-- Jugador -->
+              <td class="px-4 py-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-white font-medium">{{ getPlayerName(result) }}</span>
+                  @if (isOwnResult(result)) {
+                    <span class="text-xs px-2 py-0.5 bg-[var(--color-primary)]/20 text-[var(--color-primary)] rounded-full">Vos</span>
+                  }
+                </div>
+              </td>
+
+              <!-- Puntaje -->
+              <td class="px-4 py-4">
+                <span class="font-bold text-white font-mono">{{ result.puntaje }}</span>
+              </td>
+
+              <!-- Ganador -->
+              <td class="px-4 py-4">
+                @if (result.ganador) {
+                  <span class="flex items-center gap-1 text-green-400 text-sm font-medium">
+                    <i class="pi pi-check-circle"></i> Ganó
+                  </span>
+                } @else {
+                  <span class="flex items-center gap-1 text-red-400 text-sm font-medium">
+                    <i class="pi pi-times-circle"></i> Perdió
+                  </span>
+                }
+              </td>
+
+              <!-- Tiempo -->
+              <td class="px-4 py-4">
+                <span class="text-[var(--color-text-muted)] font-mono text-sm">
+                  {{ formatTime(result.duracion_segundos) }}
+                </span>
+              </td>
+
+              <!-- Detalle -->
+              <td class="px-4 py-4">
+                <span class="text-[var(--color-text-muted)] text-sm">{{ getDetail(result) }}</span>
+              </td>
+
+              <!-- Fecha -->
+              <td class="px-4 py-4">
+                <span class="text-[var(--color-text-muted)] text-sm">
+                  {{ result.played_at | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+              </td>
+
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

@@ -1,1 +1,202 @@
-<p>preguntados works!</p>
+<div class="max-w-2xl mx-auto px-4 py-10">
+
+  <!-- PANTALLA: Selección de dificultad -->
+  @if (gameState() === 'selecting') {
+    <div class="flex flex-col items-center gap-8 animate-[fadeIn_0.4s_ease-out]">
+      <div class="flex flex-col items-center gap-2 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center">
+          <i class="pi pi-question-circle text-3xl text-orange-400"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-white">Preguntados</h1>
+        <p class="text-[var(--color-text-muted)]">
+          Respondé {{ totalQuestions }} preguntas en {{ questionTime }} segundos cada una
+        </p>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="flex items-center gap-3 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm w-full">
+          <i class="pi pi-exclamation-triangle flex-shrink-0"></i>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <div class="flex flex-col gap-3 w-full">
+        <p class="text-[var(--color-text-muted)] text-sm text-center">Seleccioná la dificultad</p>
+        <div class="grid grid-cols-3 gap-4">
+          @for (diff of difficulties; track diff) {
+            <button
+              (click)="selectedDifficulty.set(diff)"
+              class="flex flex-col items-center gap-2 p-5 rounded-2xl border transition-all duration-200"
+              [class]="selectedDifficulty() === diff
+                ? 'bg-[var(--color-primary)]/20 border-[var(--color-primary)] text-white'
+                : 'bg-white/5 border-white/10 text-[var(--color-text-muted)] hover:border-white/30'"
+            >
+              <i class="pi text-2xl"
+                [class]="diff === 'easy' ? 'pi-face-smile text-green-400'
+                        : diff === 'medium' ? 'pi-minus-circle text-yellow-400'
+                        : 'pi-bolt text-red-400'">
+              </i>
+              <span class="font-semibold">{{ difficultyLabels[diff] }}</span>
+              <span class="text-xs opacity-60">+{{ diff === 'easy' ? 100 : diff === 'medium' ? 200 : 300 }} pts/pregunta</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <button
+        (click)="startGame()"
+        class="px-10 py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-semibold rounded-xl transition-colors"
+      >
+        Comenzar partida
+      </button>
+    </div>
+  }
+
+  <!-- PANTALLA: Cargando -->
+  @if (gameState() === 'loading') {
+    <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div class="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-[var(--color-text-muted)]">Cargando preguntas...</p>
+    </div>
+  }
+
+  <!-- PANTALLA: Jugando -->
+  @if (gameState() === 'playing' && currentQuestion()) {
+    <div class="flex flex-col gap-6 animate-[fadeIn_0.3s_ease-out]">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <a routerLink="/home"
+            class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+            <i class="pi pi-arrow-left text-[var(--color-text-muted)]"></i>
+          </a>
+          <div>
+            <p class="text-white font-semibold">
+              Pregunta {{ currentIndex() + 1 }}/{{ totalQuestions }}
+            </p>
+            <p class="text-[var(--color-text-muted)] text-xs">
+              {{ difficultyLabels[selectedDifficulty()] }} •
+              {{ currentQuestion().category }}
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 text-sm">
+          <div class="flex items-center gap-1">
+            <i class="pi pi-clock text-[var(--color-text-muted)]"></i>
+            <span class="font-mono text-white">{{ elapsedTime() * 1000 | date: 'mm:ss' }}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <i class="pi pi-star text-yellow-400"></i>
+            <span class="font-mono text-white">{{ score() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timer por pregunta -->
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-[var(--color-text-muted)]">Tiempo restante</span>
+          <span class="font-mono font-bold"
+            [class]="timeLeft() <= 5 ? 'text-red-400' : 'text-white'">
+            {{ timeLeft() }}s
+          </span>
+        </div>
+        <div class="h-2 bg-white/10 rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-1000"
+            [style.width.%]="timerPercent()"
+            [class]="timeLeft() <= 5
+              ? 'bg-red-500'
+              : timeLeft() <= 10
+              ? 'bg-yellow-500'
+              : 'bg-[var(--color-primary)]'">
+          </div>
+        </div>
+      </div>
+
+      <!-- Pregunta -->
+      <div class="bg-[var(--color-surface-alt)] border border-white/10 rounded-2xl p-6">
+        <p class="text-white text-lg font-medium leading-relaxed">
+          {{ currentQuestion().question }}
+        </p>
+      </div>
+
+      <!-- Opciones -->
+      <div class="grid grid-cols-1 gap-3">
+        @for (option of currentQuestion().options; track option) {
+          <button
+            (click)="selectOption(option)"
+            [disabled]="isAnswered()"
+            class="w-full px-5 py-4 rounded-xl border text-left font-medium transition-all duration-200"
+            [class]="getOptionClass(option)"
+          >
+            {{ option }}
+          </button>
+        }
+      </div>
+
+      <!-- Progreso -->
+      <div class="flex gap-1.5 justify-center">
+        @for (i of [].constructor(totalQuestions); track $index) {
+          <div class="h-1.5 flex-1 rounded-full transition-all duration-300"
+            [class]="$index < currentIndex()
+              ? 'bg-[var(--color-primary)]'
+              : $index === currentIndex()
+              ? 'bg-white/50'
+              : 'bg-white/10'">
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+
+  <!-- PANTALLA: Resultado -->
+  @if (gameState() === 'finished') {
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+      <div class="bg-[var(--color-surface-alt)] border rounded-2xl p-8 flex flex-col items-center gap-5 max-w-sm w-full animate-[popIn_0.3s_ease-out]"
+        [class]="correctCount() >= 7 ? 'border-green-500/30' : 'border-red-500/30'">
+
+        <div class="w-16 h-16 rounded-full flex items-center justify-center"
+          [class]="correctCount() >= 7 ? 'bg-green-500/20' : 'bg-orange-500/20'">
+          <i class="pi text-3xl"
+            [class]="correctCount() >= 7 ? 'pi-trophy text-green-400' : 'pi-star text-orange-400'">
+          </i>
+        </div>
+
+        <div class="text-center flex flex-col gap-1">
+          <h2 class="text-2xl font-bold text-white">
+            {{ correctCount() >= 7 ? '¡Excelente!' : '¡Buen intento!' }}
+          </h2>
+          <p class="text-[var(--color-text-muted)]">
+            Dificultad: <strong class="text-white">{{ difficultyLabels[selectedDifficulty()] }}</strong>
+          </p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 w-full">
+          @for (stat of [
+            { label: 'Correctas', value: correctCount() + '/' + totalQuestions,  icon: 'pi-check-circle' },
+            { label: 'Tiempo',    value: (elapsedTime() * 1000 | date: 'mm:ss'), icon: 'pi-clock'        },
+            { label: 'Puntaje',   value: score(),                                icon: 'pi-star'         }
+          ]; track stat.label) {
+            <div class="bg-white/5 rounded-xl p-3 flex flex-col items-center gap-1">
+              <i class="pi {{ stat.icon }} text-[var(--color-primary)] text-lg"></i>
+              <span class="text-white font-bold">{{ stat.value }}</span>
+              <span class="text-[var(--color-text-muted)] text-xs">{{ stat.label }}</span>
+            </div>
+          }
+        </div>
+
+        <button (click)="gameState.set('selecting')"
+          class="w-full py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-semibold rounded-xl transition-colors">
+          Jugar de nuevo
+        </button>
+        <a routerLink="/home"
+          class="text-[var(--color-text-muted)] hover:text-white text-sm transition-colors">
+          Volver al inicio
+        </a>
+      </div>
+    </div>
+  }
+
+</div>

@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { AuthService } from '../../../core/services/auth';
 import { GameResultsService } from '../../../core/services/game-results';
-import { AHORCADO_WORDS, WordEntry } from '../../../core/data/words';
+import { AHORCADO_WORDS, WordEntry } from '../../../core/data/ahorcado-words';
 import { RouterLink } from '@angular/router';
 
 const ALPHABET = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('');
